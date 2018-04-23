@@ -1,0 +1,64 @@
+---
+title: "HW2 Q2"
+author: "Danai Avgerinou, Holly Capell, Shannon McNish, Taylor Pellerin, Kaya Tollas"
+date: "4/22/2018"
+output: pdf_document
+---
+
+```{r}
+el <- read_csv("~/classes/msan628/hero-network.csv")
+el = as.matrix(el)
+
+marvel <- graph.edgelist(el,directed=FALSE)
+```
+```{r, echo = TRUE}
+
+#Count the total number of nodes
+vcount(marvel)
+
+#Count the total number of edges
+ecount(marvel)
+```
+The network has 6,421 nodes and 574,467 edges. 
+
+```{r, echo = TRUE}
+# Checking whether or not the network is connected
+igraph::is.connected(marvel)
+```
+The network is not connected.
+
+```{r, echo = TRUE}
+# decompose the graph into its connected components
+comps <- decompose.graph(marvel) #calculates the connected components
+
+#count the number of vertices in each connected component
+table(sapply(comps, vcount)) 
+```
+The network has one giant cluster and 3 smaller ones.
+
+```{r, echo = TRUE}
+#Calculate the degree of the yeast network
+d.marvel <- igraph::degree(marvel) #this is the degree sequence
+
+#get the distribution of the degrees
+summary(d.marvel)
+
+
+#clip outliers
+d.marvel.small <- d.marvel[d.marvel<200]
+
+#plot 
+hist(d.marvel.small,col="blue", breaks = 75,
+     xlab="Degree", ylab="Frequency",
+     main="Degree Distribution")
+```
+
+There are some very connected heros, with the node with the max degree having 16,499 connections. The distribution with outliers clipped shows the degrees peak around 10 degrees. 
+
+```{r}
+# get network diameter - max of shortest path distances excluding infinite paths
+
+diameter(marvel)
+
+```
+
