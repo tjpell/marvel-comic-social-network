@@ -181,14 +181,9 @@ The degree of a node in a network is the number of connections it has to other n
 ```{r}
 el <- read_csv("~/marvel-comic-social-network/data/hero-network.csv")
 el = as.matrix(el)
-
 marvel <- graph.edgelist(el,directed=FALSE)
 
-
-# wel <- read_csv("~/marvel-comic-social-network/data/weighted_edges.csv")
-# wel = as.matrix(wel)
-# 
-# wmarvel <- graph.edgelist(wel,directed=FALSE)
+wel <- read_csv("~/marvel-comic-social-network/data/weighted_edges.csv")
 ```
 
 (a) What do the vertices and edges represent in this example?
@@ -202,6 +197,8 @@ vcount(marvel)
 
 #Count the total number of edges
 ecount(marvel)
+
+dim(wel)
 ```
 There are 574,467 total edges, including duplicates, 167,100 weighted deduplicated edges, and 6,421 nodes in this data set
 
@@ -220,7 +217,7 @@ Using a sparse representation, we only need to store the edges and their weights
 In a weighted adjacency matrix, we would have to store (1/2)(n^2) - n weights where n =  6,206, the number of heros. This is because we have an undirected graph, so we only need the upper triangular quadrant of the matrix. We can also ignore the main diagonal, since we do not care if a character has self references. This comes out to 20,640,312 data points. If we also store the node weights here, we can put these on the "main diagonal"" of the adjacency matrix, leaving us with a total of  (1/2)(n^2), or 20,646,738 entries to keep track of.
 
 (f) What kinds of questions would you like to investigate for this application?
-
+------
 
 
 (g) Extract 3 induced subgraphs, each with 200 random nodes, from the dataset that you've looked at
@@ -285,6 +282,57 @@ plot(g3, layout=layout.circle, edge.width=E(g1)$weight/50, vertex.label=NA, vert
 plot(g3, layout=layout_with_fr(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
 plot(g3, layout=layout_with_kk(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
 ```
+
+
+(h) Run an exploratory analysis of the graph following along the visualizations, summary statistics,
+and community detection work shown in the Network Descriptions.Rmd file on Canvas. Use these
+techniques to answer the questions you posed in problem (1).
+
+```{r, echo = TRUE}
+# Checking whether or not the network is connected
+igraph::is.connected(marvel)
+```
+The network is not connected.
+
+```{r, echo = TRUE}
+# decompose the graph into its connected components
+comps <- decompose.graph(marvel) #calculates the connected components
+
+#count the number of vertices in each connected component
+table(sapply(comps, vcount)) 
+```
+The network has one giant cluster and 3 smaller ones.
+
+
+```{r, echo = TRUE}
+d.marvel <- igraph::degree(marvel)  # this is the degree sequence
+
+summary(d.marvel)  # get the distribution of the degrees
+
+d.marvel.small <- d.marvel[d.marvel<200]  # clip outliers
+
+
+#plot 
+hist(d.marvel.small,col="blue", breaks = 75,
+     xlab="Degree", ylab="Frequency",
+     main="Degree Distribution")
+```
+
+There are some very connected heros, with the node with Captain America having the max degree of 16,499 connections. The distribution with outliers clipped shows the degrees peak around degree 10. 
+
+
+```{r}
+# get network diameter - max of shortest path distances excluding infinite paths
+
+diameter(marvel)
+
+```
+
+This shows us that the maximum Marvel Number (for our main connected component) is 5, meaning that someone knows someone who ... who knows Ant Man.
+
+
+
+
 
 
 
