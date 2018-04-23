@@ -1,0 +1,77 @@
+---
+title: "Part_G"
+author: "Holly Capell"
+date: "4/22/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(igraph)
+library(magrittr)
+library(dplyr)
+```
+
+
+```{r}
+el <- read.csv("~/Desktop/weighted_edge_top_1000.csv") 
+el <- subset(el, select = c("hero1", "hero2", "weight"))
+g <- graph.data.frame(el, directed = F)
+
+```
+
+
+```{r}
+
+#import the sample_attributes
+a <- read.csv("~/Desktop/weighted_nodes_top_1000.csv")
+a$logged_weight <- log(a$weight)
+labels <-  c(1,2,3,4)
+a$weight_grp = cut(a$logged_weight, 4, include.lowest=TRUE, labels = labels)
+
+
+V(g)$node_value <- as.numeric(a$weight_grp[match(V(g)$name,a$hero)]) 
+
+V(g)$color=V(g)$node_value
+
+V(g)$color=gsub("1","coral",V(g)$color) 
+V(g)$color=gsub("2","firebrick1",V(g)$color) 
+V(g)$color=gsub("3","firebrick3",V(g)$color) 
+V(g)$color=gsub("4","darkred",V(g)$color) 
+
+```
+
+
+
+```{r}
+g1 <- induced.subgraph(g, sample(V(g), 200))
+g2 <- induced.subgraph(g, sample(V(g), 200))
+g3 <- induced.subgraph(g, sample(V(g), 200))
+```
+
+
+```{r}
+
+plot(g1, layout=layout.circle, edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g1, layout=layout_with_fr(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g1, layout=layout_with_kk(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+
+```
+
+
+
+```{r}
+plot(g2, layout=layout.circle, edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g2, layout=layout_with_fr(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g2, layout=layout_with_kk(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+```
+
+
+
+```{r}
+plot(g3, layout=layout.circle, edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g3, layout=layout_with_fr(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+plot(g3, layout=layout_with_kk(g1), edge.width=E(g1)$weight/50, vertex.label=NA, vertex.size=7)
+```
+
