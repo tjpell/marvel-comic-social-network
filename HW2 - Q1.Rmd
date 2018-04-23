@@ -1,0 +1,177 @@
+
+---
+title: "HW2"
+author: "Danai Avgerinou, Holly Capell, Shannon McNish, Taylor Pellerin, Kaya Tollas"
+date: "4/22/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(igraph)
+library(Matrix)
+```
+
+# 1. Iris dataset
+
+## Graph 1: points whose distances are within the lowest 25% 
+
+To produce this graph, distances between flower observations using all features were calcuated. An edge is present between two observations if the distance is within the shortest 25% of all distances calcuated. 
+
+### (a)
+```{r 1a}
+data(iris)
+
+# seperate data
+irisData <- iris[,1:4]
+irisClass <- as.numeric(iris$Species)
+
+# standardize data to have mean 0
+irisData <- scale(irisData)
+
+# Calculate adjacency matrix of distances between all pairs of flowers
+adjacency.mat <- as.matrix(dist(irisData))
+
+# get 25 percentile of distances
+quart25 <- quantile(adjacency.mat[lower.tri(adjacency.mat,diag=FALSE)],.25)
+
+# remove edges not in the bottom 25% distances
+adjacency.mat1 <- ifelse((adjacency.mat<=quart25) & (adjacency.mat>0), 1, 0)
+
+#visulize adjacency matrix
+image(Matrix(adjacency.mat1))
+```
+
+### (b)
+```{r 1b}
+# turn adjacency matrix to igraph object
+graph1 <- graph.adjacency(adjacency.mat1,mode='undirected')
+
+# specify a vector of 3 colors for the speciies
+colorvec <- c('yellow','magenta','lightblue')
+
+# assign colors to nodes
+V(graph1)$color <- colorvec[irisClass]
+
+# plot data
+plot(graph1,vertex.size=6,vertex.label=NA)
+legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
+       pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
+```
+
+### (c) 
+
+We decided the circle graph was the best layout to visualize the community structure since it was the only one that clearly indicated that setosa only linked within its species whereas versicolor and virginica linked to each other and themselves. 
+
+```{r 1c}
+plot(graph1, layout = layout.circle, vertex.label=NA, vertex.size=6)
+legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
+       pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
+# plot(graph, layout = layout.fruchterman.reingold, vertex.label=NA, vertex.size=6)
+# plot(graph, layout = layout.kamada.kawai, vertex.label=NA, vertex.size=6)
+```
+
+## Graph 2: points whose distances are within the lowest 40% 
+
+To produce this graph, distances between flower observations using all features were calcuated. An edge is present between two observations if the distance is within the shortest 40% of all distances calcuated. 
+
+### (a)
+```{r 1.2.a}
+# get 40th percentile of distances
+quart40 <- quantile(adjacency.mat[lower.tri(adjacency.mat,diag=FALSE)],.4)
+
+# remove edges not in the bottom 25% distances
+adjacency.mat2 <- ifelse((adjacency.mat<=quart40) & (adjacency.mat>0), 1, 0)
+
+#visulize adjacency matrix
+image(Matrix(adjacency.mat2))
+```
+
+### (b)
+```{r 1b.2}
+# turn adjacency matrix to igraph object
+graph2 <- graph.adjacency(adjacency.mat2,mode='undirected')
+
+# specify a vector of 3 colors for the speciies
+colorvec <- c('yellow','magenta','lightblue')
+
+# assign colors to nodes
+V(graph2)$color <- colorvec[irisClass]
+
+# plot data
+plot(graph2,vertex.size=6,vertex.label=NA)
+legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
+       pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
+```
+### (c) 
+
+For this graph, we decided the Kamada Kawai layout was best in this case to show the linkages between setosa and versicolor. This layout makes it clear how many linkages there are between these two species. 
+
+```{r 1c.2}
+#plot(graph2, layout = layout.circle, vertex.label=NA, vertex.size=6)
+#plot(graph2, layout = layout.fruchterman.reingold, vertex.label=NA, vertex.size=6)
+plot(graph2, layout = layout.kamada.kawai, vertex.label=NA, vertex.size=6)
+legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
+       pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
+```
+
+
+### (d) Comparision of the two networks
+
+This analysis compares the above two networks: Graph 1 has an edge present if the flower observations are within the lowest 25% pecent of distances calculated using all features, and Graph 2 uses the same methodology except the threshold is higher at 40%.
+
+```{r 1d.1}
+igraph::is.connected(graph1)
+
+igraph::is.connected(graph2)
+```
+
+Graph 1 is not fully connected, whereas if the threshold is relaxed, the graph becomes fully connected.
+
+```{r 1d.3}
+# decompose graph1 into its connected components
+comps1 <- decompose.graph(graph1) #calculates the connected components
+
+#count the number of vertices in each connected component
+table(sapply(comps1, vcount)) 
+```
+Graph 1 has a large component of 100 nodes, a smaller component of 49 nodes, and one observation not connected to anything. 
+
+```{r 1d.2}
+# get network diameter
+diameter(graph1)
+diameter(graph2)
+```
+Both graphs have a diameter of 6, which is the max of shortest path distances excluding infinite paths.
+
+
+```{r 1d.4}
+#Count the total number of edges in graph 1
+ecount(graph1)
+
+#Count the total number of edges in graph 2
+ecount(graph2)
+
+```
+Both graphs have 150 nodes, but graph 2 (the one with a 40% distance threshold of edges) has almost double the amount of edges graph 1 has. 
+
+```{r}
+#Calculate the degree of the  network
+d.g1 <- igraph::degree(graph1) #this is the degree sequence
+hist(d.g1 ,col="blue",
+     xlab="Degree", ylab="Frequency",
+     main="Degree Distribution - Graph 1")
+
+#Calculate the degree of the  network
+d.g2 <- igraph::degree(graph2) #this is the degree sequence
+hist(d.g2 ,col="blue",
+     xlab="Degree", ylab="Frequency",
+     main="Degree Distribution - Graph 2")
+```
+
+The degree of a node in a network is the number of connections it has to other nodes. Both graphs have a peak of nodes with around 50 degrees, but graph 2 has an additional peak of nodes with around 80 degrees.
+
+
+
+
