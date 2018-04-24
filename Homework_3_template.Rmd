@@ -186,7 +186,7 @@ marvel.adjacency <- as_adj(marvel.igraph)
 # create statnet object from edgelist
 marvel.network <- network(marvel.edgelist)
 
-plot(marvel.network, main = paste(""), usearrows = TRUE, edge.col = "grey50")#, vertex.col = pblog.labels)
+#plot(marvel.network, main = paste(""), usearrows = TRUE, edge.col = "grey50")#, vertex.col = pblog.labels)
 ```
 
 
