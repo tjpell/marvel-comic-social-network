@@ -227,9 +227,9 @@ recolor or resize the vertices. Are there any interesting network properties tha
 when coloring or resizing the vertices?
 
 ```{r}
-el <- read.csv("~/marvel-comic-social-network/data/weighted_edge_top_1000.csv") 
-el <- subset(el, select = c("hero1", "hero2", "weight"))
-g <- graph.data.frame(el, directed = F)
+wel <- read.csv("~/marvel-comic-social-network/data/weighted_edge_top_1000.csv") 
+wel <- subset(wel, select = c("hero1", "hero2", "weight"))
+g <- graph.data.frame(wel, directed = F)
 ```
 
 
@@ -328,13 +328,26 @@ diameter(marvel)
 
 ```
 
-This shows us that the maximum Marvel Number (for our main connected component) is 5, meaning that someone knows someone who ... who knows Ant Man.
+This shows us that the maximum Marvel Number (for our main connected component) is 5, meaning that someone knows someone who knows someone ... who knows Ant Man.
 
 
+### Convert Network Edge Data
+```{r, echo = TRUE, eval = TRUE}
+# create igraph from edgelist
+el <- read_csv("~/marvel-comic-social-network/data/hero-network.csv")
+marvel.edgelist = as.matrix(el)
+
+marvel.igraph <- graph.edgelist(marvel.edgelist, directed=FALSE)
+# adjacency matrix from igraph
+marvel.adjacency <- as_adj(marvel.igraph)
+```
 
 
-
-
+```{r, echo = TRUE, eval = TRUE}
+# create statnet object from edgelist
+marvel.network <- network(marvel.edgelist)
+plot(marvel.network, main = paste(""), usearrows = TRUE, edge.col = "grey50")#, vertex.col = pblog.labels)
+```
 
 
 
