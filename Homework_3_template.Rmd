@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(igraph)
 library(Matrix)
+library(statnet)
 ```
 
 # 1. Iris dataset
@@ -179,11 +180,11 @@ The degree of a node in a network is the number of connections it has to other n
 
 # 2. Marvel Social Network dataset
 ```{r}
-el <- read_csv("~/marvel-comic-social-network/data/hero-network.csv")
+el <- read_csv("./data/hero-network.csv")
 el = as.matrix(el)
 marvel <- graph.edgelist(el,directed=FALSE)
 
-wel <- read_csv("~/marvel-comic-social-network/data/weighted_edges.csv")
+wel <- read_csv("./data/weighted_edges.csv")
 ```
 
 (a) What do the vertices and edges represent in this example?
@@ -227,7 +228,7 @@ recolor or resize the vertices. Are there any interesting network properties tha
 when coloring or resizing the vertices?
 
 ```{r}
-wel <- read.csv("~/marvel-comic-social-network/data/weighted_edge_top_1000.csv") 
+wel <- read.csv("./data/weighted_edge_top_1000.csv") 
 wel <- subset(wel, select = c("hero1", "hero2", "weight"))
 g <- graph.data.frame(wel, directed = F)
 ```
@@ -236,7 +237,7 @@ g <- graph.data.frame(wel, directed = F)
 ```{r}
 
 #import the sample_attributes
-a <- read.csv("~/marvel-comic-social-network/data/weighted_nodes_top_1000.csv")
+a <- read.csv("./data/weighted_nodes_top_1000.csv")
 
 a$logged_weight <- log(a$weight)
 labels <-  c(1,2,3,4)
@@ -301,7 +302,7 @@ comps <- decompose.graph(marvel) #calculates the connected components
 #count the number of vertices in each connected component
 table(sapply(comps, vcount)) 
 ```
-The network has one giant cluster and 3 smaller ones.
+The network has one large connected component and 3 smaller ones.
 
 
 ```{r, echo = TRUE}
@@ -334,7 +335,7 @@ This shows us that the maximum Marvel Number (for our main connected component) 
 ### Convert Network Edge Data
 ```{r, echo = TRUE, eval = TRUE}
 # create igraph from edgelist
-el <- read_csv("~/marvel-comic-social-network/data/hero-network.csv")
+el <- read_csv("./data/hero-network.csv")
 marvel.edgelist = as.matrix(el)
 
 marvel.igraph <- graph.edgelist(marvel.edgelist, directed=FALSE)
@@ -346,6 +347,7 @@ marvel.adjacency <- as_adj(marvel.igraph)
 ```{r, echo = TRUE, eval = TRUE}
 # create statnet object from edgelist
 marvel.network <- network(marvel.edgelist)
+
 plot(marvel.network, main = paste(""), usearrows = TRUE, edge.col = "grey50")#, vertex.col = pblog.labels)
 ```
 
@@ -387,26 +389,48 @@ closeness.centrality <- estimate_closeness(marvel.igraph, mode = "total", normal
 ```{r, echo = TRUE}
 
 #plot in-degree
-plot(sub.pblog.network, main = paste("In-Degree Centrality"), usearrows = TRUE, vertex.cex = in.degree.centrality / 50, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+plot(marvel.network, main = paste("In-Degree Centrality"), usearrows = TRUE, vertex.cex = in.degree.centrality / 50, edge.col = "grey50")
 
 #plot out-degree
-plot(sub.pblog.network, main = paste("Out-Degree Centrality"), usearrows = TRUE, vertex.cex = out.degree.centrality / 50, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+plot(marvel.network, main = paste("Out-Degree Centrality"), usearrows = TRUE, vertex.cex = out.degree.centrality / 50, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
 
 #plot eigenvector
-plot(sub.pblog.network, main = paste("Eigenvector Centrality"), usearrows = TRUE, vertex.cex = eigenvector.centrality*4 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+plot(marvel.network, main = paste("Eigenvector Centrality"), usearrows = TRUE, vertex.cex = eigenvector.centrality*4 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
 
 #plot betweenness
-plot(sub.pblog.network, main = paste("Betweenness Centrality"), usearrows = TRUE, vertex.cex = betweenness.centrality / 15000, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+plot(marvel.network, main = paste("Betweenness Centrality"), usearrows = TRUE, vertex.cex = betweenness.centrality / 15000, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
 
 #plot closeness
-plot(sub.pblog.network, main = paste("Closeness Centrality"), usearrows = TRUE, vertex.cex = closeness.centrality * 150 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+plot(marvel.network, main = paste("Closeness Centrality"), usearrows = TRUE, vertex.cex = closeness.centrality * 150 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
 ```
 
 
+### Check out Ego network
+```{r}
+##################################
+
+#An ego network is nothing but the neighborhood of a given "ego" / node
+
+#Ego network of the main instructor (node 1)
+#ego <- induced.subgraph(marvel, igraph::neighborhood(marvel, 1, 'BLACK WIDOW/NATASHA')[[1]])
+
+#get degrees of nodes
+deg <- igraph::degree(marvel)
+dSorted <- sort.int(deg,decreasing = T, index.return = F)
+
+topDegreeNames <- dSorted[1:20]
+```
 
 
+```{r}
+degreetop20bet <- subset(betweenness.centrality, names(betweenness.centrality) %in% topDegreeNames)
+degreetop20bet
 
+degreetop20Eigen <- subset(eigenvector.centrality, names(eigenvector.centrality) %in% topDegreeNames)
+degreetop20Eigen
+```
 
+```{r}
 
-
+```
 
