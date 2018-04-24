@@ -1,8 +1,8 @@
 
 ---
-title: "HW2"
-author: "Danai Avgerinou, Holly Capell, Shannon McNish, Taylor Pellerin, Kaya Tollas"
-date: "4/22/2018"
+title: "Network Analysis - Question 1"
+author: "Shannon McNish"
+date: "4/24/2018"
 output: pdf_document
 ---
 
@@ -13,9 +13,7 @@ library(igraph)
 library(Matrix)
 ```
 
-# 1. Iris dataset
-
-## Graph 1: points whose distances are within the lowest 25% 
+## Graph 1: Observations whose distances are within the closest 25% of all distances calculated
 
 To produce this graph, distances between flower observations using all features were calcuated. An edge is present between two observations if the distance is within the shortest 25% of all distances calcuated. 
 
@@ -38,7 +36,10 @@ quart25 <- quantile(adjacency.mat[lower.tri(adjacency.mat,diag=FALSE)],.25)
 
 # remove edges not in the bottom 25% distances
 adjacency.mat1 <- ifelse((adjacency.mat<=quart25) & (adjacency.mat>0), 1, 0)
+```
 
+The plot of the adjacency matrix for graph 1 is as follows:
+```{r}
 #visulize adjacency matrix
 image(Matrix(adjacency.mat1))
 ```
@@ -53,6 +54,10 @@ colorvec <- c('yellow','magenta','lightblue')
 
 # assign colors to nodes
 V(graph1)$color <- colorvec[irisClass]
+```
+
+Plot of the network of graph 1:
+```{r}
 
 # plot data
 plot(graph1,vertex.size=6,vertex.label=NA)
@@ -62,17 +67,15 @@ legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorve
 
 ### (c) 
 
-We decided the circle graph was the best layout to visualize the community structure since it was the only one that clearly indicated that setosa only linked within its species whereas versicolor and virginica linked to each other and themselves. 
+We decided the circle graph was the best layout to visualize the community structure since it was the only one that clearly indicated that setosa only linked within its species whereas versicolor and virginica linked to each other and themselves. You can see the divide around setosa where no links cross.
 
 ```{r 1c}
 plot(graph1, layout = layout.circle, vertex.label=NA, vertex.size=6)
 legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
        pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
-# plot(graph, layout = layout.fruchterman.reingold, vertex.label=NA, vertex.size=6)
-# plot(graph, layout = layout.kamada.kawai, vertex.label=NA, vertex.size=6)
 ```
 
-## Graph 2: points whose distances are within the lowest 40% 
+## Graph 2: Observations whose distances are within the closest 40% of all distances calcula
 
 To produce this graph, distances between flower observations using all features were calcuated. An edge is present between two observations if the distance is within the shortest 40% of all distances calcuated. 
 
@@ -83,7 +86,10 @@ quart40 <- quantile(adjacency.mat[lower.tri(adjacency.mat,diag=FALSE)],.4)
 
 # remove edges not in the bottom 25% distances
 adjacency.mat2 <- ifelse((adjacency.mat<=quart40) & (adjacency.mat>0), 1, 0)
+```
 
+A plot of the adjacency matrix is as follows:
+```{r}
 #visulize adjacency matrix
 image(Matrix(adjacency.mat2))
 ```
@@ -99,6 +105,10 @@ colorvec <- c('yellow','magenta','lightblue')
 # assign colors to nodes
 V(graph2)$color <- colorvec[irisClass]
 
+```
+
+Plot of the network of graph 2:
+```{r}
 # plot data
 plot(graph2,vertex.size=6,vertex.label=NA)
 legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
@@ -106,11 +116,9 @@ legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorve
 ```
 ### (c) 
 
-For this graph, we decided the Kamada Kawai layout was best in this case to show the linkages between setosa and versicolor. This layout makes it clear how many linkages there are between these two species. 
+For this graph, we decided the Kamada Kawai layout was best in this case to show the linkages between setosa and versicolor. This layout makes it clear how many linkages there are between these two species because you can see the connections clearly for those that connect the two. 
 
 ```{r 1c.2}
-#plot(graph2, layout = layout.circle, vertex.label=NA, vertex.size=6)
-#plot(graph2, layout = layout.fruchterman.reingold, vertex.label=NA, vertex.size=6)
 plot(graph2, layout = layout.kamada.kawai, vertex.label=NA, vertex.size=6)
 legend("bottomleft", legend=c('setosa','versicolor','virginica') , col = colorvec , bty = "n", 
        pch=20 , pt.cex = 3, cex = 1 , horiz = FALSE)
