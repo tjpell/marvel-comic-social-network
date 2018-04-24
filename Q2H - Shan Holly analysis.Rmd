@@ -1,0 +1,172 @@
+---
+author: "Shannon McNish"
+date: "4/23/2018"
+
+---
+```{r}
+library(tidyverse) 
+library(knitr)
+library(igraph)
+library(Matrix)
+library(statnet)
+```
+
+### Set up
+```{r, echo = TRUE, eval = TRUE}
+# create igraph from edgelist
+el <- read_csv("./data/hero-network.csv")
+marvel.edgelist = as.matrix(el)
+
+marvel.igraph <- graph.edgelist(marvel.edgelist, directed=FALSE)
+
+# adjacency matrix from igraph
+marvel.adjacency <- as_adj(marvel.igraph)
+
+```
+
+
+
+## Which heros are central to the network and how does that compare to the number of connections
+
+```{r}
+#get degrees of nodes
+deg <- igraph::degree(marvel.igraph)
+dSorted <- sort.int(deg,decreasing = T, index.return = F)
+
+#get top 20 nodes with most degrees
+topDegree <- dSorted[1:20]
+topDegreeNames <- names(topDegree)
+
+t1 <- data.frame(Hero=names(topDegree), Degrees=topDegree, row.names=NULL)
+kable(t1, caption= "Top 20 Heros by Number of Degrees")
+```
+
+Calculate eigenvector and betweenness centralities:
+```{r, echo = TRUE, eval = TRUE}
+#eigenvector centrality
+eigenvector.centrality <- eigen_centrality(marvel.igraph, directed = FALSE)$vector
+eSorted <- sort.int(eigenvector.centrality,decreasing = T, index.return = F)[1:20]
+
+#normalized betweenness centrality
+betweenness.centrality <- estimate_betweenness(marvel.igraph, directed = TRUE, cutoff = 10)
+bSorted <- sort.int(betweenness.centrality,decreasing = T, index.return = F)[1:20]
+```
+
+Look at betweenness and eigenvector centrailty of those in top 20 by degree
+```{r}
+
+degreetop20bet <- subset(betweenness.centrality, names(betweenness.centrality) %in% topDegreeNames)
+degreetop20bet
+
+degreetop20Eigen <- subset(eigenvector.centrality, names(eigenvector.centrality) %in% topDegreeNames)
+degreetop20Eigen 
+```
+
+```{r}
+t2 <- data.frame(Hero=names(bSorted), Betweeness=bSorted, row.names=NULL)
+kable(t2, caption= "Top 20 Heros by Betweeness Centrality")
+
+```
+
+```{r}
+t3 <- data.frame(Hero=names(eSorted), Eigenvector=eSorted, row.names=NULL)
+kable(t3, caption= "Top 20 Heros by Eigenvector Centrality")
+
+```
+
+
+PLOTS
+```{r}
+# Betweenness Centrality
+
+bSorted <- sort.int(betweenness.centrality,decreasing = T, index.return = F)
+
+topBetweenNames <- bSorted[1:20]
+top20 <- names(topBetweenNames)
+
+# Create list of top 100 heros
+top100 <- bSorted[1:100]
+top100 <- names(top100)
+
+# Create attribute of whether or not hero is in our top 20
+a2 <- as.matrix(a$hero)
+a2 <- replace(a2, a2 %in% top20, 4)
+a2 <- replace(a2, !(a2 %in% top20) & a2 != 4, 2)
+
+df <- data.frame(a$hero, a2)
+
+# Create subgraph of top 100 heroes
+
+top_100 <- a$hero %in% top100
+g_small <- induced.subgraph(g, V(g)[top_100])
+
+g.edgelist <- as_edgelist(g_small)
+small.network <- network(g.edgelist, directed = F)
+plot(small.network, vertex.col = a2, edge.col = "grey50")
+
+
+
+```
+
+
+
+```{r}
+# Degree
+
+dSorted <- sort.int(deg,decreasing = T, index.return = F)
+
+topDegreeNames <- dSorted[1:20]
+top20 <- names(topDegreeNames)
+
+# Create list of top 100 heros
+top100 <- dSorted[1:100]
+top100 <- names(top100)
+
+# Create attribute of whether or not hero is in our top 20
+a2 <- as.matrix(a$hero)
+a2 <- replace(a2, a2 %in% top20, 4)
+a2 <- replace(a2, !(a2 %in% top20) & a2 != 4, 2)
+
+df <- data.frame(a$hero, a2)
+
+# Create subgraph of top 100 heroes
+
+top_100 <- a$hero %in% top100
+g_small <- induced.subgraph(g, V(g)[top_100])
+
+g.edgelist <- as_edgelist(g_small)
+small.network <- network(g.edgelist, directed = F)
+plot(small.network, vertex.col = a2, edge.col = "grey50")
+```
+
+
+```{r}
+# Eigenvector Centrality
+
+eSorted <- sort.int(eigenvector.centrality,decreasing = T, index.return = F)
+
+topEigNames <- eSorted[1:20]
+top20 <- names(topEigNames)
+
+# Create list of top 100 heros
+top100 <- eSorted[1:100]
+top100 <- names(top100)
+
+# Create attribute of whether or not hero is in our top 20
+a2 <- as.matrix(a$hero)
+a2 <- replace(a2, a2 %in% top20, 4)
+a2 <- replace(a2, !(a2 %in% top20) & a2 != 4, 2)
+
+df <- data.frame(a$hero, a2)
+
+# Create subgraph of top 100 heroes
+
+top_100 <- a$hero %in% top100
+g_small <- induced.subgraph(g, V(g)[top_100])
+
+g.edgelist <- as_edgelist(g_small)
+small.network <- network(g.edgelist, directed = F)
+plot(small.network, vertex.col = a2, edge.col = "grey50", labels)
+
+
+```
