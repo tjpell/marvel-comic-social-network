@@ -350,4 +350,63 @@ plot(marvel.network, main = paste(""), usearrows = TRUE, edge.col = "grey50")#, 
 ```
 
 
+##Network Centrality Measures and Visualization
+
+###Calculate In-Degree, Out-Degree, Eigenvector, Betweenness, and Closeness Centralities
+```{r, echo = TRUE, eval = TRUE}
+#in degree centrality
+in.degree.centrality <- colSums(as.matrix(marvel.adjacency))
+
+#out degree centrality
+out.degree.centrality <- rowSums(as.matrix(marvel.adjacency))
+
+#eigenvector centrality
+eigenvector.centrality <- eigen_centrality(marvel.igraph, directed = FALSE)$vector
+
+#normalized betweenness centrality
+betweenness.centrality <- estimate_betweenness(marvel.igraph, directed = TRUE, cutoff = 10)
+
+#closeness centrality
+closeness.centrality <- estimate_closeness(marvel.igraph, mode = "total", normalized = FALSE, cutoff = 10)
+```
+
+```{r}
+# These are all matrices...
+
+# in.degree.centrality
+# out.degree.centrality
+# eigenvector.centrality
+# betweenness.centrality
+# closeness.centrality
+```
+
+###Plot Network According to Centrality Measures.
+
+# need to update the labels, but I think holly did this part earlier
+
+```{r, echo = TRUE}
+
+#plot in-degree
+plot(sub.pblog.network, main = paste("In-Degree Centrality"), usearrows = TRUE, vertex.cex = in.degree.centrality / 50, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+
+#plot out-degree
+plot(sub.pblog.network, main = paste("Out-Degree Centrality"), usearrows = TRUE, vertex.cex = out.degree.centrality / 50, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+
+#plot eigenvector
+plot(sub.pblog.network, main = paste("Eigenvector Centrality"), usearrows = TRUE, vertex.cex = eigenvector.centrality*4 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+
+#plot betweenness
+plot(sub.pblog.network, main = paste("Betweenness Centrality"), usearrows = TRUE, vertex.cex = betweenness.centrality / 15000, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+
+#plot closeness
+plot(sub.pblog.network, main = paste("Closeness Centrality"), usearrows = TRUE, vertex.cex = closeness.centrality * 150 + 1, edge.col = "grey50", coord = sub.pblog.x, vertex.col = sub.labels)
+```
+
+
+
+
+
+
+
+
 
