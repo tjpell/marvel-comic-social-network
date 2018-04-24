@@ -1,0 +1,108 @@
+---
+title: "HW2 Q2"
+author: "Danai Avgerinou, Holly Capell, Shannon McNish, Taylor Pellerin, Kaya Tollas"
+date: "4/22/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(igraph)
+library(sand)
+library(tidyverse)
+```
+
+
+```{r}
+el <- read_csv("~/CompStats/HW/hw_2/weighted_edges.csv")
+el = as.matrix(el)
+marvel <- graph.data.frame(el[,1:2], directed = F)
+E(marvel)$weight <- as.numeric(el[,3])
+```
+
+# Avenger analysis
+
+Below we investigate the universe of the Avengers as compared to Captain America's neighborhood. This will give us insight into the relative importance of the Avengers 
+
+```{r}
+marvel_nodes <-  V(marvel)
+captain_america <- which(marvel_nodes$name == 'CAPTAIN AMERICA')
+thor <- which(marvel_nodes$name == 'THOR/DR. DONALD BLAK')
+iron_man <- which(marvel_nodes$name == 'IRON MAN/TONY STARK')
+black_panther <- which(marvel_nodes$name == 'BLACK PANTHER/T\'CHAL')
+captain_marvel <- which(marvel_nodes$name == 'CAPTAIN MARVEL II/MO')
+ghost_rider <- which(marvel_nodes$name == 'GHOST RIDER II/JOHNN')
+she_hulk <- which(marvel_nodes$name == 'SHE-HULK/JENNIFER WA')
+hulk <- which(marvel_nodes$name == 'HULK/DR. ROBERT BRUC')
+black_widow <- which(marvel_nodes$name == 'BLACK WIDOW/NATASHA')
+dr_strange <- which(marvel_nodes$name == 'DR. STRANGE/STEPHEN')
+ant_man <- which(marvel_nodes$name == 'ANT-MAN/DR. HENRY J.')
+hawk <- which(marvel_nodes$name == 'HAWK')
+
+avenger_ids <- c(captain_america, thor, iron_man, black_panther, black_widow, captain_marvel, ghost_rider, she_hulk, hulk, dr_strange, hawk, ant_man)
+avengers <-  induced.subgraph(marvel, avenger_ids)
+
+plot(avengers, layout = layout.kamada.kawai, vertex.size = degree(avengers), edge.width = log( E(avengers)$weight))
+```
+Now we investigate betweenness centrality of the Avengers. Suprisingly, if we remove Captain America, all the Avengers are still connected. The most between-hero in the (selected) Avengers is actually Ghost Rider!
+
+```{r}
+betweenness(avengers) %>% sort(decreasing=T)
+```
+Now we look at eigenvector centrality, which shows that within the Avengers, Iron Man is the next-most important in terms of his important friends.
+
+```{r}
+eigen_centrality(avengers)$vector %>% sort(decreasing=T)
+```
+Now we will visualize Captain America's ego network. This is a subgraph of popular heroes connected to Captain America who are also highly-connected in the network. The red node is Captain America and the yellow ones are Avengers. All other nodes are heroes from different leagues. 
+
+```{r }
+ego.captain <- induced.subgraph(marvel, igraph::neighborhood(marvel, 1, 'CAPTAIN AMERICA')[[1]])
+vertices.captain <-  V(ego.captain)
+friends <- degree(ego.captain) %>% sort(decreasing=T)
+irrelevant <- degree(ego.captain) < friends[20] #only keep his most connected friends
+ego.cap <- delete_vertices(ego.captain, vertices.captain[irrelevant])
+vertices.captain <-  V(ego.cap)
+
+captain_america <- which(vertices.captain$name == 'CAPTAIN AMERICA')
+thor <- which(vertices.captain$name == 'THOR/DR. DONALD BLAK')
+iron_man <- which(vertices.captain$name == 'IRON MAN/TONY STARK')
+black_widow <- which(vertices.captain$name == 'BLACK WIDOW/NATASHA')
+black_panther <- which(vertices.captain$name == 'BLACK PANTHER/T\'CHAL')
+captain_marvel <- which(vertices.captain$name == 'CAPTAIN MARVEL II/MO')
+ghost_rider <- which(vertices.captain$name == 'GHOST RIDER II/JOHNN')
+she_hulk <- which(vertices.captain$name == 'SHE-HULK/JENNIFER WA')
+hulk <- which(vertices.captain$name == 'HULK/DR. ROBERT BRUC')
+black_widow <- which(vertices.captain$name == 'BLACK WIDOW/NATASHA')
+dr_strange <- which(vertices.captain$name == 'DR. STRANGE/STEPHEN')
+ant_man <- which(vertices.captain$name == 'ANT-MAN/DR. HENRY J.')
+hawk <- which(vertices.captain$name == 'HAWK')
+
+avenger_ids <- c(captain_america, thor, iron_man, black_panther, hulk, black_widow, captain_marvel, ghost_rider, she_hulk, dr_strange, ant_man, hawk)
+
+hero_type <- rep(1,vcount(ego.cap))
+hero_type[avenger_ids] <- 2
+hero_type[captain_america] <- 3
+
+# specify a vector of 5 colors for other, Avengers, and Captain America
+colorvec <- c('black','yellow', 'red')
+# assign colors to nodes
+V(ego.cap)$color <- colorvec[hero_type]
+plot(ego.cap, layout = layout.kamada.kawai, vertex.label = NA)
+```
+
+Now we check closeness centrality for Captain America's co-hero network. 
+
+```{r}
+closeness(ego.cap, mode = c("out", "in", "all", "total"),
+  weights = NULL, normalized = FALSE) %>% sort(decreasing=T)
+```
+It appears everyone is approximately equidistant on this network.
+
+Now we look at eigenvector centrality. It is interesting to note that after Captain America, the most central nodes are all part of the Fantastic Four. A few X-Men show up here too, which confirms that those leagues are the most popular and influential in the MCU. 
+
+```{r}
+eigenvector.centrality <- eigen_centrality(ego.cap, directed = FALSE)$vector
+eigenvector.centrality %>% sort(decreasing=T)
+```
+
+

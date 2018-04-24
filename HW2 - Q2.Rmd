@@ -6,7 +6,13 @@ output: pdf_document
 ---
 
 ```{r}
-el <- read_csv("~/classes/msan628/hero-network.csv")
+library(igraph)
+library(sand)
+```
+
+
+```{r}
+el <- read_csv("~/CompStats/HW/hw_2/hero-network.csv")
 el = as.matrix(el)
 
 marvel <- graph.edgelist(el,directed=FALSE)
@@ -14,10 +20,10 @@ marvel <- graph.edgelist(el,directed=FALSE)
 ```{r, echo = TRUE}
 
 #Count the total number of nodes
-vcount(marvel)
+print(vcount(marvel))
 
 #Count the total number of edges
-ecount(marvel)
+print(ecount(marvel))
 ```
 The network has 6,421 nodes and 574,467 edges. 
 
@@ -43,7 +49,6 @@ d.marvel <- igraph::degree(marvel) #this is the degree sequence
 #get the distribution of the degrees
 summary(d.marvel)
 
-
 #clip outliers
 d.marvel.small <- d.marvel[d.marvel<200]
 
@@ -57,8 +62,47 @@ There are some very connected heros, with the node with the max degree having 16
 
 ```{r}
 # get network diameter - max of shortest path distances excluding infinite paths
-
 diameter(marvel)
-
 ```
+
+```{r}
+degrees <- degree(marvel) %>% sort(decreasing=T)
+degrees[1:10]
+```
+
+
+```{r}
+ego.captain <- induced.subgraph(marvel, igraph::neighborhood(marvel, 1, 'CAPTAIN AMERICA')[[1]])
+plot(ego.captain, layout = layout.kamada.kawai, vertex.label=NA, vertex.size=2)
+```
+
+
+```{r}
+df <- V(marvel)
+```
+
+
+```{r}
+df[1].id
+```
+
+
+
+```{r}
+closeness(ego.captain, vids = 'CAPTAIN AMERICA', mode = c("out", "in", "all", "total"),
+  weights = NULL, normalized = FALSE)
+```
+
+```{r}
+eigenvector.centrality <- eigen_centrality(marvel.igraph, directed = FALSE)$vector
+```
+
+
+
+```{r}
+V(ego.captain)
+```
+
+
+
 
